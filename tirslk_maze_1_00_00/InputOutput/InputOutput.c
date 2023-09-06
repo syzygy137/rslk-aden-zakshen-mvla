@@ -90,6 +90,14 @@ void Port1_Init(void){
    * Your code should ONLY modify bits 0, 1, and 4 of Port 1 as required.
    * Remember, | to set bits, & to clear bits
   */
+  P1->SEL0 &= 0b11101100;
+  P1->SEL1 &= 0b11101100;
+  P1->DIR |= 0b00000001;
+  P1->DIR &= 0b11101101;
+  P1->OUT |= 0b00010010;
+  P1->OUT &= 0b11111110;
+  P1->REN |= 0b00010010;
+
 }
 
 /* Port1_Input: This function reads P1->IN, inverts the data so that
@@ -102,7 +110,10 @@ uint8_t Port1_Input(void){
    * when pushed and 1 when not pushed. Convert to positive logic (so that a
    * 1 means pushed, and 0 means not pushed. Clear all don't care bits
   */
-  return(0);
+  uint8_t var = P1->IN;
+  var = ~var;
+  var &= 0b00010010;
+  return(var);
 }
 
 /* Port1_Output: This function writes P1->OUT, set P1.0 to match data, and
@@ -113,6 +124,8 @@ void Port1_Output(uint8_t data){  // write output to P1.0
    * a) clear bit 0 of P1->OUT
    * b) set bit 0 = data  (note that data should be 0 or 1)
   */
+  P1->OUT &= 0b11111110;
+  P1->OUT |= data;
 }
 
 /* Port2_Init: This function initializes P2.0, P2.1, and P2.3 (and ONLY those
@@ -128,6 +141,12 @@ void Port2_Init(void){
    * Your code should ONLY modify bits 0, 1, and 2 of Port 2 as required.
    * Remember, | to set bits, & to clear bits
   */
+  P2->OUT &= 0b11111010;
+  P2->DIR |= 0b00000101;
+  P2->SEL1 &= 0b11111010;
+  P2->SEL0 &= 0b11111010;
+  P2->DS |= 0b00000101;
+
 }
 
 
@@ -137,6 +156,8 @@ void Port2_Init(void){
  */
 void Port2_Output(uint8_t data){  // write three outputs bits of P2
  /* Follow similar methodology for Port1_Output */
+    P2->OUT &= 0b11111010;
+    P2->OUT |= (data & 0b00000101);
 }
 
 
