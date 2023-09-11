@@ -141,7 +141,7 @@ void Port2_Init(void){
    * Your code should ONLY modify bits 0, 1, and 2 of Port 2 as required.
    * Remember, | to set bits, & to clear bits
   */
-  P2->OUT &= 0b11111010;
+  P2->OUT &= 0b11111000;
   P2->DIR |= 0b00000101;
   P2->SEL1 &= 0b11111010;
   P2->SEL0 &= 0b11111010;
@@ -156,12 +156,12 @@ void Port2_Init(void){
  */
 void Port2_Output(uint8_t data){  // write three outputs bits of P2
  /* Follow similar methodology for Port1_Output */
-    P2->OUT &= 0b11111010;
-    P2->OUT |= (data & 0b00000101);
+    P2->OUT &= 0b11111000;
+    P2->OUT |= (data & 0b00000111);
 }
 
 
-int main(void){ uint8_t status;
+int main2(void){ uint8_t status;
   Port1_Init();                    // initialize P1.1 and P1.4 and make them inputs (P1.1 and P1.4 built-in buttons)
                                    // initialize P1.0 as output to red LED
   Port2_Init();                    // initialize P2.2-P2.0 and make them outputs (P2.2-P2.0 built-in LEDs)
@@ -186,5 +186,70 @@ int main(void){ uint8_t status;
         break;
     }
   }
+}
+
+int main(void){ uint8_t status;
+
+  uint8_t LED_COLOR = RED;
+  uint8_t LED1_ON = 0;
+  uint8_t LED2_ON = 0;
+  uint8_t sw1_pressed = 0;
+  uint8_t sw2_pressed = 0;
+
+  Port1_Init();                    // initialize P1.1 and P1.4 and make them inputs (P1.1 and P1.4 built-in buttons)
+                                   // initialize P1.0 as output to red LED
+  Port2_Init();                    // initialize P2.2-P2.0 and make them outputs (P2.2-P2.0 built-in LEDs)
+  while(1){
+    status = Port1_Input();
+    if (status == SW1 || status == SW1 + SW2) {
+        if (!sw1_pressed) {
+            LED2_ON = ~LED2_ON;
+            if (LED2_ON) {
+                Port2_Output(LED_COLOR);
+            } else {
+                Port2_Output(LED_OFF);
+            }
+            sw1_pressed = 1;
+        }
+    } else {
+        sw1_pressed = 0;
+    }
+    if (status == SW2 || status == SW1 + SW2) {
+        if (!sw2_pressed) {
+            if (LED2_ON) {
+                switch (LED_COLOR) {
+                case RED:
+                    LED_COLOR = GREEN;
+                    break;
+                case GREEN:
+                    LED_COLOR = BLUE;
+                    break;
+                case BLUE:
+                    LED_COLOR = RED;
+                    break;
+                }
+                Port2_Output(LED_COLOR);
+            } else {
+                Port2_Output(LED_OFF);
+            }
+            sw2_pressed = 1;
+        }
+    } else {
+        sw2_pressed = 0;
+    }
+    if (sw1_pressed || sw2_pressed) {
+        if (!LED1_ON) {
+            LED1_ON = 1;
+        }
+    } else {
+        LED1_ON = 0;
+    }
+    if (LED1_ON) {
+        Port1_Output(RED);
+    } else {
+        Port1_Output(LED_OFF);
+    }
+  }
+
 }
 
