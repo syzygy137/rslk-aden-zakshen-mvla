@@ -142,10 +142,10 @@ void Port2_Init(void){
    * Remember, | to set bits, & to clear bits
   */
   P2->OUT &= 0b11111000;
-  P2->DIR |= 0b00000101;
-  P2->SEL1 &= 0b11111010;
-  P2->SEL0 &= 0b11111010;
-  P2->DS |= 0b00000101;
+  P2->DIR |= 0b00000111;
+  P2->SEL1 &= 0b11111000;
+  P2->SEL0 &= 0b11111000;
+  P2->DS |= 0b00000111;
 
 }
 
@@ -201,7 +201,7 @@ int main(void){ uint8_t status;
   Port2_Init();                    // initialize P2.2-P2.0 and make them outputs (P2.2-P2.0 built-in LEDs)
   while(1){
     status = Port1_Input();
-    if (status == SW1 || status == SW1 + SW2) {
+    if (status & SW1) {
         if (!sw1_pressed) {
             LED2_ON = ~LED2_ON;
             if (LED2_ON) {
@@ -214,7 +214,7 @@ int main(void){ uint8_t status;
     } else {
         sw1_pressed = 0;
     }
-    if (status == SW2 || status == SW1 + SW2) {
+    if (status & SW2) {
         if (!sw2_pressed) {
             if (LED2_ON) {
                 switch (LED_COLOR) {
