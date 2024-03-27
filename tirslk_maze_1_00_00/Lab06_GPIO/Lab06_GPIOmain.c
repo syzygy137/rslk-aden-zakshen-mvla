@@ -58,8 +58,25 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "msp.h"
 #include "../inc/Reflectance.h"
 #include "../inc/Clock.h"
+#include "../inc/CortexM.h"
+#include "../inc/LaunchPad.h"
+#include "../inc/SysTickInts.h"
 
-uint8_t Data; // QTR-8RC
+uint8_t Data, dataValid, msCnt; // QTR-8RC
+
+void SysTick_Handler(void) {
+    if (msCnt == 0) {
+        Reflectance_Start();
+    }
+    if (msCnt == 1) {
+        Data = Reflectance_End();
+        dataValid = 1;
+    }
+    msCnt++;
+    if (msCnt == 10) {
+        msCnt = 0;
+    }
+}
 
 void Debug_LED_Init() {
     //P2.5 is for driving an oscilloscope to reflect either P5.3 or P7.3
@@ -81,10 +98,45 @@ int main(void){
   Clock_Init48MHz();
   Debug_LED_Init();
   Reflectance_Init(); // your initialization
+  SysTickInts_Init(47999,1);
+  EnableInterrupts();
   while(1){
+    if (dataValid) {
+        P2->OUT &= 0;
+        if (Data & 0xC0) {
+            P2->OUT |= 0x4;
+        }
+        if (Data & 0x3C) {
+            P2->OUT |= 0x2;
+        }
+        if (Data & 0x3) {
+            P2->OUT |= 0x1;
+        }
+    }
+
+    Clock_Delay1ms(10);
+  }
+}
+
+int main_noInt(void){
+  Clock_Init48MHz();
+  Debug_LED_Init();
+  Reflectance_Init(); // your initialization
+
+  while(1){
+    P2->OUT &= 0;
     Data = Reflectance_Read(1000); // your measurement
     // turn on LED2.RGB as described in the comments
     // write this code
+    if (Data & 0xC0) {
+        P2->OUT |= 0x4;
+    }
+    if (Data & 0x3C) {
+        P2->OUT |= 0x2;
+    }
+    if (Data & 0x3) {
+        P2->OUT |= 0x1;
+    }
 
 
     Clock_Delay1ms(10);
