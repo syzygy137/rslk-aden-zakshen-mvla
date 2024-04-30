@@ -1,10 +1,8 @@
-// MotorSimple.c
+// Lab12_Motorsmain.c
 // Runs on MSP432
-// Provide mid-level functions that initialize ports and
-// set motor speeds to move the robot.
-// Starter code for Lab 12, uses Systick software delay to create PWM
-// Daniel Valvano
-// July 7, 2017
+// Solution to Motors lab
+// Daniel and Jonathan Valvano
+// September 4, 2017
 
 /* This example accompanies the books
    "Embedded Systems: Introduction to the MSP432 Microcontroller",
@@ -44,6 +42,7 @@ those of the authors and should not be interpreted as representing official
 policies, either expressed or implied, of the FreeBSD Project.
 */
 
+
 // Sever VCCMD=VREG jumper on Motor Driver and Power Distribution Board and connect VCCMD to 3.3V.
 //   This makes P3.7 and P3.6 low power disables for motor drivers.  0 to sleep/stop.
 // Sever nSLPL=nSLPR jumper.
@@ -55,78 +54,95 @@ policies, either expressed or implied, of the FreeBSD Project.
 // Right motor PWM connected to P2.6/TA0CCP3 (J4.39)
 // Right motor enable connected to P3.6 (J2.11)
 
-#include <stdint.h>
 #include "msp.h"
+#include "../inc/bump.h"
+#include "../inc/Clock.h"
 #include "../inc/SysTick.h"
-#include "../inc/Bump.h"
-#define P2_5 (*((volatile uint8_t *)(0x42098074)))
-// *******Lab 12 solution*******
+#include "../inc/LaunchPad.h"
+#include "../inc/MotorSimple.h"
 
-void Motor_InitSimple(void){
-// Initializes the 6 GPIO lines and puts driver to sleep
-// Returns right away
-// initialize P1.6 and P1.7 and make them outputs
-
-    /* P5.4, P5.5:    Left, Right Dir
-     * P2.7, P2.6:    Left, Right PWM
-     * P3.7, P3.6:    Left, Right SLP
-     */
-    P5->SEL0 &= 0xCF;
-    P2->SEL0 &= 0x3F;
-    P3->SEL0 &= 0x3F;
-    P5->SEL1 &= 0xCF;
-    P2->SEL1 &= 0x3F;
-    P3->SEL1 &= 0x3F;
-    P5->OUT &= 0xCF;
-    P2->OUT &= 0x3F;
-    P3->OUT &= 0x3F;
-    P5->DIR |= ~0xCF;
-    P2->DIR |= ~0x3F;
-    P3->DIR |= ~0x3F;
+// Enables Pin 2.5 to be an output for debug visibility, timing 
+// measurement with o-scope.
+void Debug_LED_Init() {
+    //P2.5 is for driving the output logic value, initially low
+    P2->SEL0 &= ~0x20;
+    P2->SEL1 &= ~0x20;
+    P2->OUT &= ~0x20;
+    P2->DIR |= 0x20;
 }
 
-void Motor_StopSimple(void){
-// Stops both motors, puts driver to sleep, sets direction to forward
-// Returns right away
 
-// TODO: Write this function
+// Driver test
+void Pause(void){
+  while(LaunchPad_Input()==0);  // wait for touch
+  while(LaunchPad_Input());     // wait for release
+}
+int Program12_1(void){
+  Clock_Init48MHz();
+  LaunchPad_Init(); // built-in switches and LEDs
+
+  Bump_Init();      // bump switches
+  Motor_InitSimple();     // your function
+  while(1){
+    Pause();
+    Motor_ForwardSimple(5000,2000);  // your function
+    Pause();
+    Motor_BackwardSimple(5000,2000); // your function
+    Pause();
+    Motor_LeftSimple(5000,2000);     // your function
+    Pause();
+    Motor_RightSimple(5000,2000);    // your function
+  }
 }
 
-void Motor_ForwardSimple(uint16_t duty, uint32_t time){
-// Drives both motors forward at duty (100 to 9900), period is 10000 (10mS)
-// Runs for time duration (units=10ms) using a loop, and then stops
-// Stop the motors and return if any bumper switch is active
-// Check this at the BEGINING of each loop.
-// Returns after time*10ms or if a bumper switch is hit
-
-// TODO: Write this function
+// Voltage current and speed as a function of duty cycle
+int Program12_2(void){
+  uint16_t duty;
+  Clock_Init48MHz();
+  LaunchPad_Init();   // built-in switches and LEDs
+  Bump_Init();        // bump switches
+  Motor_InitSimple(); // initialization
+  while(1){
+    for(duty=2000; duty<=8000; duty=duty+2000){
+      Motor_StopSimple();   // measure current
+      Pause();
+      Motor_LeftSimple(duty,6000);  // measure current
+    }
+  }
 }
 
-void Motor_BackwardSimple(uint16_t duty, uint32_t time){
-// Drives both motors backward at duty (100 to 9900)
-// Runs for time duration (units=10ms), and then stops
-// Runs even if any bumper switch is active
-// Returns after time*10ms
-
-// TODO: Write this function
+int Program12_3(void){
+  Clock_Init48MHz();
+  LaunchPad_Init();   // built-in switches and LEDs
+  Bump_Init();        // bump switches
+  Motor_InitSimple(); // initialization
+  while(1){
+    Pause();
+    Motor_ForwardSimple(9900,15000); // max speed 15 s
+  }
 }
 
-void Motor_LeftSimple(uint16_t duty, uint32_t time){
-// Drives just the left motor forward at duty (100 to 9900)
-// Right motor is stopped (sleeping)
-// Runs for time duration (units=10ms), and then stops
-// Stop the motor and return if any bumper switch is active
-// Returns after time*10ms or if a bumper switch is hit
-
-// TODO: Write this function
+// does the robot move straight?
+int main(void){ // Program12_4
+  Clock_Init48MHz();
+  LaunchPad_Init();   // built-in switches and LEDs
+  SysTick_Init();
+  Bump_Init();        // bump switches
+  Debug_LED_Init();
+  Motor_InitSimple(); // initialization
+  while(1){
+    Pause(); // start on SW1 or SW2
+    LaunchPad_Output(0x02);
+    Motor_ForwardSimple(5000,350);  // 3.5 seconds and stop
+    LaunchPad_Output(0x00);
+    Motor_StopSimple(); Clock_Delay1ms(500);
+    LaunchPad_Output(0x01);
+    Motor_BackwardSimple(3000,200); // reverse 2 sec
+    LaunchPad_Output(0x03);
+    Motor_LeftSimple(3000,200);     // right turn 2 sec
+    LaunchPad_Output(0x04);
+    Motor_RightSimple(3000,200);     // right turn 2 sec
+  }
 }
 
-void Motor_RightSimple(uint16_t duty, uint32_t time){
-// Drives just the right motor forward at duty (100 to 9900)
-// Left motor is stopped (sleeping)
-// Runs for time duration (units=10ms), and then stops
-// Stop the motor and return if any bumper switch is active
-// Returns after time*10ms or if a bumper switch is hit
 
-// TODO: Write this function
-}
