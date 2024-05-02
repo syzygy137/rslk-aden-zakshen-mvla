@@ -57,8 +57,11 @@ policies, either expressed or implied, of the FreeBSD Project.
 // Activate interface pullup
 // pins 7,6,5,3,2,0
 void Bump_Init(void){
-    // write this as part of Lab 10
-  
+    P4->SEL0 &= ~0xED;
+    P4->SEL1 &= ~0xED;
+    P4->DIR &= ~0xED;
+    P4->OUT |= 0xED;
+    P4->REN |= 0xED;
 }
 // Read current state of 6 switches
 // Returns a 6-bit positive logic result (0 to 63)
@@ -70,7 +73,7 @@ void Bump_Init(void){
 // bit 0 Bump0
 uint8_t Bump_Read(void){
     // write this as part of Lab 10
-
-    return 0; // replace this line
+    uint8_t data = ~P4->IN & 0xED;
+    return (data & 0xE0)>>2 | (data & 0xC)>>1 | data&0x1; // replace this line
 }
 
