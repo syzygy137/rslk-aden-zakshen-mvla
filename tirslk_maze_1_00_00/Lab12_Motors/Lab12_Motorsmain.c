@@ -61,10 +61,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "../inc/LaunchPad.h"
 #include "../inc/MotorSimple.h"
 
-// Enables Pin 2.5 to be an output for debug visibility, timing 
-// measurement with o-scope.
 void Debug_LED_Init() {
     //P2.5 is for driving the output logic value, initially low
+    //P2.0-2.2 will allow viewing the position...
     P2->SEL0 &= ~0x20;
     P2->SEL1 &= ~0x20;
     P2->OUT &= ~0x20;
@@ -133,7 +132,8 @@ int main(void){ // Program12_4
   while(1){
     Pause(); // start on SW1 or SW2
     LaunchPad_Output(0x02);
-    Motor_ForwardSimple(5000,350);  // 3.5 seconds and stop
+    Motor_ForwardSimple(5000,150);  // 1.5 seconds and stop
+    Motor_ForwardSimple(2500,200);  // 2.0 seconds and stop
     LaunchPad_Output(0x00);
     Motor_StopSimple(); Clock_Delay1ms(500);
     LaunchPad_Output(0x01);
