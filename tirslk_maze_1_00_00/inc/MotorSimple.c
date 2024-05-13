@@ -90,6 +90,9 @@ void Motor_StopSimple(void){
 // Returns right away
 
 // TODO: Write this function
+    P2->OUT &= 0b00111111;
+    P5-> OUT &= 0b11001111;
+    P3-> OUT &= 0b00111111;
 }
 
 void Motor_ForwardSimple(uint16_t duty, uint32_t time){
@@ -100,6 +103,24 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time){
 // Returns after time*10ms or if a bumper switch is hit
 
 // TODO: Write this function
+    P5-> OUT &= 0b11001111;
+    P3-> OUT |= 0b11000000;
+
+    uint32_t high = duty * 48;
+    uint32_t low = (10000 - duty) * 48;
+    uint32_t i;
+    for (i = 0; i < time; i++) {
+        if (Bump_Read()) {
+            Motor_StopSimple();
+            return;
+        }
+        P2->OUT |= 0b11000000;
+        SysTick_Wait(high);
+        P2->OUT &= 0b00111111;
+        SysTick_Wait(low);
+    }
+    Motor_StopSimple();
+    return;
 }
 
 void Motor_BackwardSimple(uint16_t duty, uint32_t time){
@@ -109,6 +130,21 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time){
 // Returns after time*10ms
 
 // TODO: Write this function
+    P5-> OUT &= 0b11111111;
+    P5-> OUT |= 0b00110000;
+    P3-> OUT |= 0b11000000;
+
+    uint32_t high = duty * 48;
+    uint32_t low = (10000 - duty) * 48;
+    uint32_t i;
+    for (i = 0; i < time; i++) {
+        P2->OUT |= 0b11000000;
+        SysTick_Wait(high);
+        P2->OUT &= 0b00111111;
+        SysTick_Wait(low);
+    }
+    Motor_StopSimple();
+    return;
 }
 
 void Motor_LeftSimple(uint16_t duty, uint32_t time){
@@ -119,6 +155,24 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time){
 // Returns after time*10ms or if a bumper switch is hit
 
 // TODO: Write this function
+    P5-> OUT &= 0b11101111;
+    P3-> OUT |= 0b10000000;
+
+    uint32_t high = duty * 48;
+    uint32_t low = (10000 - duty) * 48;
+    uint32_t i;
+    for (i = 0; i < time; i++) {
+        if (Bump_Read()) {
+            Motor_StopSimple();
+            return;
+        }
+        P2->OUT |= 0b10000000;
+        SysTick_Wait(high);
+        P2->OUT &= 0b01111111;
+        SysTick_Wait(low);
+    }
+    Motor_StopSimple();
+    return;
 }
 
 void Motor_RightSimple(uint16_t duty, uint32_t time){
@@ -129,4 +183,23 @@ void Motor_RightSimple(uint16_t duty, uint32_t time){
 // Returns after time*10ms or if a bumper switch is hit
 
 // TODO: Write this function
+    P5-> OUT &= 0b11011111;
+    P3-> OUT |= 0b01000000;
+
+    uint32_t high = duty * 48;
+    uint32_t low = (10000 - duty) * 48;
+    uint32_t i;
+    for (i = 0; i < time; i++) {
+        if (Bump_Read()) {
+            Motor_StopSimple();
+            return;
+        }
+        P2->OUT |= 0b01000000;
+        SysTick_Wait(high);
+        P2->OUT &= 0b10111111;
+        SysTick_Wait(low);
+    }
+    Motor_StopSimple();
+    return;
+
 }
