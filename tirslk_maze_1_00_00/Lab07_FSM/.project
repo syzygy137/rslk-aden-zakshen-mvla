@@ -31,6 +31,16 @@
 			<locationURI>PARENT-1-PROJECT_LOC/inc/Clock.c</locationURI>
 		</link>
 		<link>
+			<name>CortexM.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/CortexM.c</locationURI>
+		</link>
+		<link>
+			<name>FlashProgram.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/FlashProgram.c</locationURI>
+		</link>
+		<link>
 			<name>LaunchPad.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/inc/LaunchPad.c</locationURI>
@@ -40,5 +50,25 @@
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/inc/Reflectance.c</locationURI>
 		</link>
+		<link>
+			<name>Motor.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/Motor.c</locationURI>
+		</link>
+		<link>
+			<name>PWM.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/PWM.c</locationURI>
+		</link> 
+		<link>
+			<name>SysTick.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/SysTick.c</locationURI>
+		</link>
+		<link>
+			<name>SysTickInts.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/inc/SysTickInts.c</locationURI>
+		</link> 
 	</linkedResources>
 </projectDescription>
