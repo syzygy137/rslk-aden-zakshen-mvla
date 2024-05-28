@@ -48,6 +48,10 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "../inc/clock.h"
 #include "../inc/LaunchPad.h"
 #include "../inc/Reflectance.h"
+#include "../inc/CortexM.h"
+#include "../inc/SysTickInts.h"
+#include "../inc/PWM.h"
+#include "../inc/Motor.h"
 
 // Linked data structure
 struct State {
