@@ -68,7 +68,7 @@ void SysTick_Handler(void) {
     if (msCnt == 0) {
         Reflectance_Start();
     }
-    if (msCnt == 1) {
+    else if (msCnt == 1) {
         Data = Reflectance_End();
         dataValid = 1;
     }
@@ -112,9 +112,8 @@ int main(void){
         if (Data & 0x3) {
             P2->OUT |= 0x1;
         }
+        dataValid = 0;
     }
-
-    Clock_Delay1ms(10);
   }
 }
 
