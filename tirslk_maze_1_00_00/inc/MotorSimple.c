@@ -93,6 +93,7 @@ void Motor_StopSimple(void){
     P2->OUT &= 0b00111111;
     P5-> OUT &= 0b11001111;
     P3-> OUT &= 0b00111111;
+
 }
 
 void Motor_ForwardSimple(uint16_t duty, uint32_t time){

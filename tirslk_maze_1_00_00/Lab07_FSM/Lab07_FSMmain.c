@@ -55,10 +55,12 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 // Linked data structure
 struct State {
-  uint32_t out;                // 2-bit output
-  uint32_t delay;              // time to delay in 1ms
+
+  uint32_t pwmLeft;
+  uint32_t pwmRight;
   uint8_t LED1;
   uint8_t LED2;
+  uint32_t delay;
   const struct State *next[4]; // Next if 2-bit input is 0-3
 };
 typedef const struct State State_t;
@@ -73,21 +75,23 @@ typedef const struct State State_t;
 #define LostRight    &fsm[6]   // Both Sensors Off, previous state is LeftOff*
 #define Fwd5         &fsm[7]
 #define Stop         &fsm[8]
+#define Full_Stop     &fsm[9]
 
 // State       Output   Delay   Next_0     Next_1     Next_2     Next_3
 // Center      Both     500     RightOff1  LeftOff1   RightOff1  Center
 
-State_t fsm[9]={
-  {0x03, 500, 0, 0x02, { RightOff1, LeftOff1,   RightOff1,  Center }}, // Center
+State_t fsm[10]={
+  {1000, 1000 , 0, 0x02, 5, { RightOff1, LeftOff1,   RightOff1,  Center }}, // Center
  //TODO: fill in the rest of the states
-  {0x02, 500, 0, 0x04, { LostLeft, LeftOff2, RightOff1, Center}},  // LeftOff1
-  {0x03, 500, 1, 0x04, { LostLeft, LeftOff1, RightOff1, Center}},  // LeftOff2
-  {0x01, 500, 0, 0x01, { LostRight, LeftOff1, RightOff2, Center}},  // RightOff1
-  {0x03, 500, 1, 0x01, { LostRight, LeftOff1, RightOff1, Center}},  // RightOff2
-  {0x02, 5000, 0, 0x06, { Fwd5, Fwd5, Fwd5, Fwd5}},  // LostLeft
-  {0x01, 5000, 0, 0x03, { Fwd5, Fwd5, Fwd5, Fwd5}},  // LostRight
-  {0x03, 5000, 0, 0x07, { Stop, LeftOff1, RightOff1, Center}},  // Fwd5
-  {0x00, 500, 1, 0, { Stop, LeftOff1, RightOff1, Center}},  // Stop
+  {1000, 0, 0, 0x04, 5, { LostLeft, LeftOff2, RightOff1, Center}},  // LeftOff1
+  {1000, 0, 1, 0x04, 5, { LostLeft, LeftOff1, RightOff1, Center}},  // LeftOff2
+  {0, 1000, 0, 0x01, 5, { LostRight, LeftOff1, RightOff2, Center}},  // RightOff1
+  {0, 1000, 1, 0x01, 5, { LostRight, LeftOff1, RightOff1, Center}},  // RightOff2
+  {1000, 0, 0, 0x06, 50, { Fwd5, Fwd5, Fwd5, Fwd5}},  // LostLeft
+  {0, 1000, 0, 0x03, 50, { Fwd5, Fwd5, Fwd5, Fwd5}},  // LostRight
+  {1000, 1000, 0, 0x07, 50, { Stop, LeftOff1, RightOff1, Center}},  // Fwd5
+  {0x00, 0, 1, 0, 5, { Stop, LeftOff1, RightOff1, Center}},  // Stop
+  {0x00, 0, 0, 0, 50, { Full_Stop, Full_Stop, Full_Stop, Full_Stop}}
 
 };
 
@@ -95,6 +99,26 @@ State_t fsm[9]={
 State_t *Spt;  // pointer to the current state
 uint32_t Input;
 uint32_t Output;
+uint8_t dataValid;
+uint32_t Delay;
+uint32_t data;
+uint8_t msCnt;
+
+void SysTick_Handler(void) {
+    if (msCnt == 0) {
+        Reflectance_Start();
+    }
+    if (msCnt == 1) {
+        data = Reflectance_End();
+        dataValid = 1;
+    }
+    msCnt++;
+    Delay++;
+    if (msCnt == 10) {
+        msCnt = 0;
+    }
+}
+
 /*Run FSM continuously
 1) Output depends on State (display state on LED1, LED2 per slides)
 2) Wait depends on State
@@ -102,17 +126,29 @@ uint32_t Output;
 4) Next depends on (Input,State)
  */
 int main(void){
+  Motor_Init();
   Clock_Init48MHz();
+  SysTickInts_Init(48000, 3);
   LaunchPad_Init();
+  while(LaunchPad_Input() == 0);
+  while(LaunchPad_Input());
+  EnableInterrupts();
   Spt = Center;
   while(1){
-    Output = Spt->out;            // set output from FSM
-    LaunchPad_LED(Spt->LED1);     // display state information per slides
-    LaunchPad_Output(Spt->LED2);
-    Clock_Delay1ms(Spt->delay);   // wait
-    Input = LaunchPad_Input();    // read sensors
-    Input = Reflectance_Center(1000);
-    Spt = Spt->next[Input];       // next depends on input and current state
+    if (dataValid) {
+        if (data == 0xFF) {
+            Spt = Full_Stop;
+        }
+        data = (data & 0x18) >> 3;
+        dataValid = 0;
+    }
+    if (Delay >= Spt->delay) {
+        Spt = Spt->next[data];       // next depends on input and current state
+        LaunchPad_LED(Spt->LED1);     // display state information per slides
+        LaunchPad_Output(Spt->LED2);
+        Motor_Forward(Spt->pwmLeft, Spt->pwmRight);
+        Delay = 0;
+    }
   }
 }
 

@@ -59,6 +59,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "../inc/CortexM.h"
 #include "../inc/PWM.h"
 
+uint32_t Delay;
+
+
 
 // ------------Motor_Init------------
 // Initialize GPIO pins for output, which will be
@@ -71,6 +74,19 @@ policies, either expressed or implied, of the FreeBSD Project.
 // Output: none
 void Motor_Init(void){
   // write this as part of Lab 07 when directed
+    PWM_Init34(15000, 0, 0);
+    P5->SEL0 &= 0xCF;
+    //P2->SEL0 &= 0x3F;
+    P3->SEL0 &= 0x3F;
+    P5->SEL1 &= 0xCF;
+    //P2->SEL1 &= 0x3F;
+    P3->SEL1 &= 0x3F;
+    P5->OUT &= 0xCF;
+    //P2->OUT &= 0x3F;
+    P3->OUT &= 0x3F;
+    P5->DIR |= ~0xCF;
+    //P2->DIR |= ~0x3F;
+    P3->DIR |= ~0x3F;
 }
 
 // ------------Motor_Stop------------
@@ -80,8 +96,11 @@ void Motor_Init(void){
 // Output: none
 void Motor_Stop(void){
   // write this as part of Lab 07 when directed
+    P5-> OUT &= 0b11001111;
+    P3-> OUT &= 0b00111111;
+    PWM_Duty3(0);
+    PWM_Duty4(0);
 }
-
 // ------------Motor_Forward------------
 // Drive the robot forward by running left and
 // right wheels forward with the given duty
@@ -92,6 +111,10 @@ void Motor_Stop(void){
 // Assumes: Motor_Init() has been called
 void Motor_Forward(uint16_t leftDuty, uint16_t rightDuty){ 
   // write this as part of Lab 07 when directed
+    PWM_Duty3(rightDuty);
+    PWM_Duty4(leftDuty);
+    P5-> OUT &= 0b11001111;
+    P3-> OUT |= 0b11000000;
 }
 
 // ------------Motor_Right------------
@@ -104,6 +127,8 @@ void Motor_Forward(uint16_t leftDuty, uint16_t rightDuty){
 // Assumes: Motor_Init() has been called
 void Motor_Right(uint16_t leftDuty, uint16_t rightDuty){ 
   // write this as part of Lab 07, when directed....
+    PWM_Duty3(rightDuty);
+    PWM_Duty4(leftDuty);
 
 }
 
@@ -117,8 +142,8 @@ void Motor_Right(uint16_t leftDuty, uint16_t rightDuty){
 // Assumes: Motor_Init() has been called
 void Motor_Left(uint16_t leftDuty, uint16_t rightDuty){ 
     // write this as part of Lab 07, when directed....
-
-
+    PWM_Duty3(rightDuty);
+    PWM_Duty4(leftDuty);
 }
 
 // ------------Motor_Backward------------
@@ -131,5 +156,7 @@ void Motor_Left(uint16_t leftDuty, uint16_t rightDuty){
 // Assumes: Motor_Init() has been called
 void Motor_Backward(uint16_t leftDuty, uint16_t rightDuty){ 
     // write this as part of Lab 07, when directed....
+    PWM_Duty3(rightDuty);
+    PWM_Duty4(leftDuty);
 
 }
